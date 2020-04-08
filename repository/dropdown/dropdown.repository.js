@@ -21,7 +21,9 @@ function DropdownRepository(dbContext) {
             case "priorityStatus":
                 query = "select IdPriorityStatus id, Name value from Catalog.PriorityStatus  where RecordStatu = 1";
                break;
-                
+            case "rols":
+                query = "select IdRole id, Name value from security.Role  where RecordStatu = 1";
+               break;    
         } 
       
         dbContext.getQuery(query, parameters, false, function(error, data) {

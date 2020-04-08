@@ -8,6 +8,7 @@ function eRoutes() {
     var ticket = require('./repository/ticket/ticket.routes')(router);
     var dropdown = require('./repository/dropdown/dropdown.routes')(router);
     var file = require('./repository/fileLoad/fileLoad.routes')(router);
+    var auth = require('./repository/auth/auth.routes')(router);
     return router;
 }
 

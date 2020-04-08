@@ -1,6 +1,8 @@
 var cors = require('cors');
 var express = require('express');
 var bodyParser = require('body-parser');
+//var expressJWT = require('express-jwt'); 
+
 
 var allowedOrigins = ['http://localhost:4200',
                       'http://yourapp.com'];
@@ -17,7 +19,9 @@ var corsOptions = {
   }
 }
 
-app.use(cors(corsOptions));
+//app.use(cors(corsOptions));
+app.use(cors());
+app.options('*', cors());
 
 var port = process.env.port || 3300
 
@@ -29,6 +33,17 @@ var port = process.env.port || 3300
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+// //SECRET FOR JSON WEB TOKEN
+// let secretKey = 'gtert12548';
+
+// //ALLOW PATHS WITHOUT TOKEN AUTHENTICATION
+// app.use(expressJWT({ secret: secretKey})
+//     .unless(
+//         { path: [
+//             '/auth'
+//         ]}
+//     ));
 
 var router = require('./routes')();
  

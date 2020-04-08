@@ -41,7 +41,7 @@ function BusinessAgentRepository(dbContext) {
         type: TYPES.Int,
         val: req.params.agentId
       });
-      var query = "select IdBusinessAgent idBusinessAgent, Name name, Position position, Email email,  Skype skype, Phone phone from Catalog.BusinessAgent  where IdBusinessAgent = @Id";
+      var query = "select IdBusinessAgent idBusinessAgent, Name name, Position position, Email email,  Skype skype, Phone phone, Photo photo from Catalog.BusinessAgent  where IdBusinessAgent = @Id";
       dbContext.getQuery(query, parameters, false, function(error, data) {
         if (data) {
           return	res.status(200).send(data[0]);
@@ -59,8 +59,9 @@ function BusinessAgentRepository(dbContext) {
     parameters.push({ name: "Email", type: TYPES.Text, val: req.body.email });
     parameters.push({ name: "Skype", type: TYPES.Text, val: req.body.skype });
     parameters.push({ name: "Phone", type: TYPES.Text, val: req.body.phone });
+    parameters.push({ name: "Photo", type: TYPES.Text, val: req.body.photo });
 
-    var query = "Update c set c.Name = @Name, c.Position = @Position, c.Email = @Email ,c.Skype = @Skype ,c.Phone = @Phone , c.RecordDate =  CURRENT_TIMESTAMP from Catalog.BusinessAgent c  where IdBusinessAgent = @Id";
+    var query = "Update c set c.Name = @Name, c.Position = @Position, c.Email = @Email ,c.Skype = @Skype ,c.Phone = @Phone,c.Photo = @Photo , c.RecordDate =  CURRENT_TIMESTAMP from Catalog.BusinessAgent c  where IdBusinessAgent = @Id";
      
     dbContext.getQuery(query, parameters, false, function (error, data, rowCount) {
       if (rowCount > 0) {
@@ -86,8 +87,8 @@ function BusinessAgentRepository(dbContext) {
     parameters.push({ name: "Email", type: TYPES.Text, val: req.body.email });
     parameters.push({ name: "Skype", type: TYPES.Text, val: req.body.skype });
     parameters.push({ name: "Phone", type: TYPES.Text, val: req.body.phone });
-
-    var query = "INSERT INTO Catalog.BusinessAgent ([Name] ,[Position],[Email] ,[Skype] ,[Phone] ,[RecordStatu], [RecordDate]) OUTPUT INSERTED.* VALUES (@Name, @Position, @Email, @Skype, @Phone, 1, CURRENT_TIMESTAMP);";
+    parameters.push({ name: "Photo", type: TYPES.Text, val: req.body.photo });
+    var query = "INSERT INTO Catalog.BusinessAgent ([Name] ,[Position],[Email] ,[Skype] ,[Phone],[Photo] ,[RecordStatu], [RecordDate]) OUTPUT INSERTED.* VALUES (@Name, @Position, @Email, @Skype, @Phone,@Photo, 1, CURRENT_TIMESTAMP);";
      
       dbContext.getQuery(query, parameters, false, function (error, data, rowCount) {
         if (rowCount > 0) {
