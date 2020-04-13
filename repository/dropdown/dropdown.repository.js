@@ -24,6 +24,9 @@ function DropdownRepository(dbContext) {
             case "rols":
                 query = "select IdRole id, Name value from security.Role  where RecordStatu = 1";
                break;    
+            case "typeTask":
+            query = "select IdTypeTask id, Name value from Catalog.TypeTask  where RecordStatu = 1";
+            break;    
         } 
       
         dbContext.getQuery(query, parameters, false, function(error, data) {
