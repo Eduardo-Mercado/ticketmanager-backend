@@ -1,7 +1,7 @@
-var response = require("../../shared/response");
+
 var multer = require("multer");
 var mime = require("mime");
-var TYPES = require("tedious").TYPES;
+var { QueryTypes } = require('sequelize');
 
 function FileLoadRepository(dbContext) {
 
@@ -25,16 +25,15 @@ function FileLoadRepository(dbContext) {
           .status(500)
           .send({ mesage: "Error uploading file.", info: err });
 
-         var parameters = [];
-         parameters.push({ name: "OriginalName", type: TYPES.Text, val: req.body.name });
-         parameters.push({ name: "NameStorage", type: TYPES.Text, val: renamefile });
-         parameters.push({ name: "URL", type: TYPES.Text, val: "" });
-         parameters.push({ name: "Type", type: TYPES.Text, val: req.body.type});
-         parameters.push({ name: "IdTask", type: TYPES.Int, val: req.body.idTask});
+         var parameters = {'OriginalName': req.body.name 
+         ,'NameStorage': renamefile
+         ,'URL': "" 
+         ,'Type': req.body.type
+         ,'IdTask': req.body.idTask}
 
-         var query = "INSERT INTO Manage.TicketDocument ([IdTask], [URL] ,[Type],[RecordDate] ,[RecordStatu],[OriginalName] ,[NameStorage])  VALUES (@IdTask, @URL , @Type, CURRENT_TIMESTAMP, 1, @OriginalName, @NameStorage);";
+         var query = "INSERT INTO Manage.TicketDocument ([IdTask], [URL] ,[Type],[RecordDate] ,[RecordStatu],[OriginalName] ,[NameStorage])  VALUES (:IdTask, :URL , :Type, CURRENT_TIMESTAMP, 1, :OriginalName, :NameStorage);";
           
-           dbContext.getQuery(query, parameters, false, function (error, data, rowCount) {
+           dbContext.getQuery(query, parameters, QueryTypes.INSERT, function (error, data, rowCount) {
              if (rowCount > 0) {
                       return res.status(200).send({ info: true})
                } else {
@@ -50,16 +49,11 @@ function FileLoadRepository(dbContext) {
 
   function getFile(req, res) {
     if (req.params.ticketId) {
-       var param = [];
-       param.push({
-         name: "Id",
-         type: TYPES.Int,
-         val: req.params.ticketId
-       });
+       var param = {'Id': req.params.ticketId};
 
        var query = "select [Type] type,OriginalName name, IdTaskDocument id  from Manage.TicketDocument "+
-                   "  where IdTask = @Id";
-          dbContext.getQuery(query, param, false, function (error, data) {
+                   "  where IdTask = :Id";
+          dbContext.getQuery(query, param, QueryTypes.SELECT, function (error, data) {
             if (data) {
               return res.status(200).send(data);
             }

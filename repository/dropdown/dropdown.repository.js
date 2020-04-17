@@ -1,11 +1,9 @@
-var response = require("../../shared/response");
-var TYPES = require("tedious").TYPES;
-var Request = require('tedious').Request  
+var { QueryTypes } = require('sequelize');
 
 function DropdownRepository(dbContext) {
     
   function getDropdown(req, res) {
-    var parameters = [];
+    
     if (req.params.table) {
         var query = "";
         switch(req.params.table) {
@@ -29,11 +27,10 @@ function DropdownRepository(dbContext) {
             break;    
         } 
       
-        dbContext.getQuery(query, parameters, false, function(error, data) {
-    
+        dbContext.get(query, function(error, data) {
           if(error) return res.status(500).send({message: 'Error al consultar el listado de : '+req.params.table, info: error});
           else {
-            return	res.status(200).send(data);
+            return	res.status(200).send(data[0]);
           } 
       });
     
@@ -41,16 +38,16 @@ function DropdownRepository(dbContext) {
   }
 
   function getDropdownFiltered(req, res) {
-    var parameters = [];
+ 
     if(req.params.table) {
-      parameters.push({ name: 'Id', type: TYPES.Int, val: req.params.id });
+      
       var query = "";
       switch(req.params.table) {
          case "Customer":
-           query = "select IdCustomer id, Name value from Catalog.Customer  where RecordStatu = 1 and IdCompany = @Id";
+           query = "select IdCustomer id, Name value from Catalog.Customer  where RecordStatu = 1 and IdCompany = :Id";
       }
 
-      dbContext.getQuery(query, parameters, false, function(err, data){
+      dbContext.getQuery(query, { 'Id': req.params.id }, QueryTypes.SELECT, function(err, data){
         if(err)
             return res.status(500).send({message:'Error al consultar el listado filtrado de :'+ req.params.table, info: err});
          else  return res.status(200).send( (data == false)? null : data);
