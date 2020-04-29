@@ -15,4 +15,7 @@ router.route('/ticket/:ticketId')
         
 router.route('/ticket/byAgent/:agentId')
         .get(authCheck.isAuth, ticketRepository.getTicketAgent);
+
+router.route('/ticket/resolve')
+      .post(authCheck.isAuth, ticketRepository.postResolved)
 }

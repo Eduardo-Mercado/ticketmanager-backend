@@ -6,7 +6,7 @@ function TicketRepository(dbContext) {
   
     dbContext.get("Catalog.getTickets", function(error, data) {
         if(error) return res.status(500).send({message: `Error al consultar el listado de compañias`, info: error});
-        else  return	res.status(200).send(data);
+        else  return	res.status(200).send(data[0]);
     });
   
   }
@@ -44,17 +44,16 @@ function TicketRepository(dbContext) {
   }
 
   function putTicket(req, res) {
-    var parameters = [];
-    parameters.push({ name: "Id", type: TYPES.Int, val: req.body.idTicket });
-    parameters.push({ name: "IdCustomer", type: TYPES.Int, val: req.body.idCustomer});
-    parameters.push({ name: "IdBusinessAgent", type: TYPES.Int, val: req.body.idBusinessAgent });
-    parameters.push({ name: "IdPriorityStatus", type: TYPES.Int, val: req.body.idPriority }); 
-    parameters.push({ name: "Subject", type: TYPES.Text, val: req.body.subject });
-    parameters.push({ name: "Body", type: TYPES.Text, val: req.body.body });
+    var parameters = {'Id': req.body.idTicket
+                      ,'IdCustomer': req.body.idCustomer
+                      ,'IdBusinessAgent': req.body.idBusinessAgent
+                      ,'IdPriorityStatus': req.body.idPriority
+                      ,'Subject': req.body.subject
+                      ,'Body': req.body.body };
 
-    var query = "UPDATE T SET IdCustomer = @IdCustomer, Subject = @Subject, Body = @Body, IdBusinessAgent = @IdBusinessAgent, IdPriorityStatus = @IdPriorityStatus  FROM [Manage].[Ticket] t  WHERE IdTicket = @Id";
+    var query = "UPDATE T SET IdCustomer = :IdCustomer, Subject = :Subject, Body = :Body, IdBusinessAgent = :IdBusinessAgent, IdPriorityStatus = :IdPriorityStatus  FROM [Manage].[Ticket] t  WHERE IdTicket = :Id";
      
-    dbContext.getQuery(query, parameters, false, function (error, data, rowCount) {
+    dbContext.getQuery(query, parameters, QueryTypes.UPDATE, function (error, data, rowCount) {
       if (rowCount > 0) {
         var valor = [];
         valor.push({ name: "Id", type: TYPES.Int, val: req.body.idTicket });
@@ -94,6 +93,27 @@ function TicketRepository(dbContext) {
 
   }
 
+  function saveResolve(req, res) {
+    var parameters = {
+      'IdTicket': req.body.idTicket,
+      'IdBusinessAgent': req.body.idAgent,
+      'Answer': req.body.description
+    };
+
+    var query = "INSERT INTO [Manage].[TicketSolution]([IdBusinessAgent],[Answer],[StartDate],[EndDate],[RecordStatu],[RecordDate],[IdTicket])"+
+                " VALUES(:IdBusinessAgent,:Answer,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,1,CURRENT_TIMESTAMP,:IdTicket)";
+
+                dbContext.getQuery(query, parameters, QueryTypes.INSERT, function (error, data, rowCount) {
+                  if (rowCount > 0) {
+
+                        return	res.status(200).send(true);
+                 }
+                 else{
+                   return res.sendStatus(500).send({message: 'Error durante la inserccion ' , info: error});
+                 }
+                });
+  }
+
   function deleteTicket(req, res) {
 
     var parameters = [];
@@ -103,7 +123,7 @@ function TicketRepository(dbContext) {
 
         parameters.push({ name: 'Id', type: TYPES.Int, val: req.params.ticketId });
 
-        var query = "delete from manage.ticket where IdTicket = @Id"
+        var query = "delete from manage.ticket where IdTicket = :Id"
 
         dbContext.getQuery(query, parameters, false, function (error, data, rowCount) {
             if (rowCount > 0) {
@@ -120,7 +140,8 @@ function TicketRepository(dbContext) {
     post: postTicket,
     put:putTicket,
     delete: deleteTicket,
-    getTicketAgent: getTicketsByAgent
+    getTicketAgent: getTicketsByAgent,
+    postResolved:saveResolve
   };
 }
 module.exports = TicketRepository;

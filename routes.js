@@ -10,6 +10,7 @@ function eRoutes() {
     var file = require('./repository/fileLoad/fileLoad.routes')(router);
     var auth = require('./repository/auth/auth.routes')(router);
     var task = require('./repository/task/task.routes')(router);
+    var rol = require('./repository/rol/rol.routes')(router);
     return router;
 }
 

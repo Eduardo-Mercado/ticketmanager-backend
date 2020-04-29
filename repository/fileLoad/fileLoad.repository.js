@@ -2,6 +2,7 @@
 var multer = require("multer");
 var mime = require("mime");
 var { QueryTypes } = require('sequelize');
+var path = require("path");
 
 function FileLoadRepository(dbContext) {
 
@@ -40,10 +41,6 @@ function FileLoadRepository(dbContext) {
                  return res.sendStatus(505).send({message: 'Error al registrar el archivo cargado. ' , info: error});;
                }
              });
-      // return res
-      //   .status(200)
-      //   .send({ info: true, renameFile : renamefile })
-      //   .end("File is uploaded");
     });
   }
 
@@ -52,7 +49,7 @@ function FileLoadRepository(dbContext) {
        var param = {'Id': req.params.ticketId};
 
        var query = "select [Type] type,OriginalName name, IdTaskDocument id  from Manage.TicketDocument "+
-                   "  where IdTask = :Id";
+                   "  where IdTicket = :Id";
           dbContext.getQuery(query, param, QueryTypes.SELECT, function (error, data) {
             if (data) {
               return res.status(200).send(data);
@@ -64,9 +61,22 @@ function FileLoadRepository(dbContext) {
     }
   }
 
+  function dowloadFile(req, res) {
+    if ( req.params.id) {
+        dbContext.getQuery("SELECT Type, NameStorage name, OriginalName  FROM  Manage.TicketDocument WHERE IdTaskDocument = :Id",{"Id": req.params.id}, QueryTypes.SELECT, function(err, data) {
+           if (data) {
+            const file = path.resolve('./uploads/',data[0].name);
+              res.status(200);
+              res.download(file, data[0].OriginalName, function(err){ console.log(err) } )
+           }
+        })
+    }
+  }
+
   return {
     post: load,
-    get: getFile
+    get: getFile,
+    getFile: dowloadFile
   };
 }
 module.exports = FileLoadRepository;

@@ -3,25 +3,6 @@ var TYPES = require("tedious").TYPES;
 var Request = require('tedious').Request  
 
 function CompanyRepository(dbContext) {
-    
-  function findCompany(req, res, next) {
-
-    if (req.params.companyId) {
-        var parameters = [];
-
-        parameters.push({ name: 'Id', type: TYPES.Int, val: req.params.companyId });
-
-        var query = "select * from catalog.company where IdCompany = @Id"
-
-        dbContext.getQuery(query, parameters, false, function (error, data) {
-            if (data) {
-                req.data = data[0];
-                return next();
-            }
-            return res.sendStatus(404);
-        });
-    }
-}
 
   function getCompanies(req, res) {
   
@@ -120,7 +101,6 @@ function CompanyRepository(dbContext) {
     get: getCompany,
     post: postCompany,
     put:putCompany,
-    intercept: findCompany,
     delete: deleteCompany
   };
 }

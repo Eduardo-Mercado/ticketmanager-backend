@@ -8,14 +8,6 @@ const secretKey = 'gtert12548'
 function AuthRepository(dbContext) {
 
     async function signIn(req, res) {
-        // var userData = {
-        //     "name": "admin",
-        //     "id": "1"
-        // }
-
-        // let token = jwt.sign(userData, secretKey, {expiresIn: '15s'})
-        // res.status(200).json({"token": token});
-
         const userName = req.params.userName;  
         const password = req.params.passwd;  
 
@@ -24,22 +16,22 @@ function AuthRepository(dbContext) {
                         message: 'signin falled',
                         error: 'User name and password required'
                     });
-            
         }  
         try {  
             
-            var queryUser = 'select * from security.Account where UserName = :User';
+            var queryUser = 'select * from security.Account  where UserName = :User';
             dbContext.getQuery(queryUser, {'User': userName },QueryTypes.SELECT, async function(err, data) {
                 if ( data ) { 
                     const compareRes = await bcrypt.compare(password, data[0].Passwd);
                     if (compareRes) {  
                         var userData = {
-                            "name": "admin",
-                            "id": "1"
+                            "name": data[0].UserName,
+                            "id": data[0].IdUser,
+                            "idRol": data[0].IdRol
                         }
             
-                        let token = jwt.sign(userData, secretKey, {expiresIn: '1500s'})
-                        res.status(200).json({"token": token});
+                        let token = jwt.sign(userData, secretKey, {expiresIn: '2h'})
+                        res.status(200).json({"token": token, "userData": userData});
                     } else {
                         return res.sendStatus(400).send({message: 'signin falled' , error: 'Password Incorrect'});
                     }
@@ -64,7 +56,7 @@ function AuthRepository(dbContext) {
                 ,'Passwd': hashedPassword 
             };
 
-            var query = "INSERT INTO [security].[User] ([RecordDate] ,[IdRol] ,[User] ,[Passwd] ,[RecordStatus], [IdAgent]) "+
+            var query = "INSERT INTO [security].[Account] ([RecordDate] ,[IdRol] ,[User] ,[Passwd] ,[RecordStatus], [IdAgent]) "+
                         " OUTPUT INSERTED.* VALUES (CURRENT_TIMESTAMP ,:IdRol ,:User,:Passwd ,1,:IdAgent);";
 
             dbContext.getQuery(query, parameters, false, function(error, data, rowcount){
@@ -86,7 +78,7 @@ function AuthRepository(dbContext) {
     function GetUsers(req, res) {
   
         dbContext.get("security.getUsers", function(error, data) {
-        //  return res.json(response(data, error));
+      
             if(error) return res.status(500).send({message: `Error al consultar el listado de compañias`, info: err});
             
             return	res.status(200).send(data[0]);
