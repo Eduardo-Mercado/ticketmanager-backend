@@ -1,6 +1,4 @@
-var response = require("../../shared/response");
-var TYPES = require("tedious").TYPES;
-var Request = require('tedious').Request  
+var { QueryTypes } = require('sequelize');
 
 function CompanyRepository(dbContext) {
 
@@ -16,31 +14,28 @@ function CompanyRepository(dbContext) {
 
   function getCompany(req, res) {
     if (req.params.companyId) {
-      var parameters = [];
-      parameters.push({
-        name: "Id",
-        type: TYPES.Int,
-        val: req.params.companyId
-      });
-      var query = "select IdCompany idCompany, Name name, Logo logo from Catalog.Company  where IdCompany = @Id";
-      dbContext.getQuery(query, parameters, false, function(error, data) {
+      var parameters = {Id: req.params.companyId};
+      var query = "select IdCompany idCompany, Name name, Logo logo from Catalog.Company  where IdCompany = :Id";
+      dbContext.getQuery(query, parameters, QueryTypes.SELECT, function(err, data) {
         if (data) {
           return	res.status(200).send(data[0]);
         }
-        return res.sendStatus(404);
+        else {
+          return res.status(500).send({message: `Error al consultar el listado de compañias`, info: err});
+        }
       });
     }
   }
 
   function putCompany(req, res) {
-    var parameters = [];
-    parameters.push({ name: "Id", type: TYPES.Int, val: req.body.idCompany });
-    parameters.push({ name: "Name", type: TYPES.Text, val: req.body.name });
-    parameters.push({ name: "Logo", type: TYPES.Text, val: req.body.logo });
+    var parameters = { 'Id': req.body.idCompany 
+                      ,'Name': req.body.name
+                      ,'Logo': req.body.logo 
+                    };
 
-    var query = "Update c set c.Name = @Name,  c.Logo = @Logo, c.RecordDate =  CURRENT_TIMESTAMP from Catalog.Company c  where IdCompany = @Id";
+    var query = "Update c set c.Name = :Name,  c.Logo = :Logo, c.RecordDate =  CURRENT_TIMESTAMP from Catalog.Company c  where IdCompany = :Id";
      
-    dbContext.getQuery(query, parameters, false, function (error, data, rowCount) {
+    dbContext.getQuery(query, parameters, QueryTypes.UPDATE, function (err, data, rowCount) {
       if (rowCount > 0) {
           var info ={
             idCompany: req.body.idCompany,
@@ -48,21 +43,23 @@ function CompanyRepository(dbContext) {
             logo: req.body.logo
           };
          return res.status(200).send(info);
+      } else {
+        return res.status(500).send({message: 'Error al actualizar compañia', info: err});
       }
-      return res.sendStatus(404);
+
+      
 
     });
 }
 
   function postCompany(req, res) {
-    var parameters = [];
-    parameters.push({ name: "Id", type: TYPES.Int, val: req.body.idCompany });
-    parameters.push({ name: "Name", type: TYPES.Text, val: req.body.name });
-    parameters.push({ name: "Logo", type: TYPES.Text, val: req.body.logo });
+    var parameters = {'Id': req.body.idCompany
+                    ,'Name': req.body.name
+                    ,'Logo': req.body.logo };
 
     var query = "INSERT INTO Catalog.Company (Name, Logo, RecordStatu, RecordDate) OUTPUT INSERTED.* VALUES (@Name, @Logo,1 , CURRENT_TIMESTAMP);";
      
-      dbContext.getQuery(query, parameters, false, function (error, data, rowCount) {
+      dbContext.getQuery(query, parameters, QueryTypes.INSERT, function (err, data, rowCount) {
         if (rowCount > 0) {
             var info ={
               idCompany: data[0].IdCompany,
@@ -70,8 +67,9 @@ function CompanyRepository(dbContext) {
               logo: data[0].Logo
             };
            return res.status(200).send(info);
+        } else {
+          return res.status(500).send({message: 'Error al insertar compañia', info: err});
         }
-        return res.sendStatus(404);
     });
 
   }
@@ -81,13 +79,11 @@ function CompanyRepository(dbContext) {
     var parameters = [];
 
     if (req.params.companyId ) {
-        var parameters = [];
-
-        parameters.push({ name: 'Id', type: TYPES.Int, val: req.params.companyId });
+        var parameters = { 'Id': req.params.companyId };
 
         var query = "delete from catalog.company where IdCompany = @Id"
 
-        dbContext.getQuery(query, parameters, false, function (error, data, rowCount) {
+        dbContext.getQuery(query, parameters, QueryTypes.DELETE, function (error, data, rowCount) {
             if (rowCount > 0) {
                 return res.status(200).send({info:true});
             }

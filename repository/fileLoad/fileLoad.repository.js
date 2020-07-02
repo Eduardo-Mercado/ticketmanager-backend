@@ -30,9 +30,9 @@ function FileLoadRepository(dbContext) {
          ,'NameStorage': renamefile
          ,'URL': "" 
          ,'Type': req.body.type
-         ,'IdTask': req.body.idTask}
+         ,'IdTicket': req.body.idTicket}
 
-         var query = "INSERT INTO Manage.TicketDocument ([IdTask], [URL] ,[Type],[RecordDate] ,[RecordStatu],[OriginalName] ,[NameStorage])  VALUES (:IdTask, :URL , :Type, CURRENT_TIMESTAMP, 1, :OriginalName, :NameStorage);";
+         var query = "INSERT INTO Manage.TicketDocument ([IdTicket], [URL] ,[Type],[RecordDate] ,[RecordStatu],[OriginalName] ,[NameStorage])  VALUES (:IdTicket, :URL , :Type, CURRENT_TIMESTAMP, 1, :OriginalName, :NameStorage);";
           
            dbContext.getQuery(query, parameters, QueryTypes.INSERT, function (error, data, rowCount) {
              if (rowCount > 0) {

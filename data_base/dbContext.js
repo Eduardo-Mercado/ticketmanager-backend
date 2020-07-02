@@ -1,7 +1,4 @@
-// var Request = require('tedious').Request;
 var connection = require('./connect');
-// var utility = require('./utility/utility');
-// const { QueryTypes } = require('sequelize');
 
 function spGetExecute(qry, callback) {
     connection.query(qry)

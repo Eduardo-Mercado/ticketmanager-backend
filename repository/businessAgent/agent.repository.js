@@ -1,24 +1,21 @@
-var response = require("../../shared/response");
-var TYPES = require("tedious").TYPES;
-var Request = require('tedious').Request  
+var { QueryTypes } = require('sequelize');  
 
 function BusinessAgentRepository(dbContext) {
     
   function findBusinessAgent(req, res, next) {
 
     if (req.params.agentId) {
-        var parameters = [];
+        var parameters = {'Id': req.params.agentId };
 
-        parameters.push({ name: 'Id', type: TYPES.Int, val: req.params.agentId });
+        var query = "select * from catalog.BusinessAgent where IdBusinessAgent = :Id"
 
-        var query = "select * from catalog.BusinessAgent where IdBusinessAgent = @Id"
-
-        dbContext.getQuery(query, parameters, false, function (error, data) {
+        dbContext.getQuery(query, parameters, QueryTypes.SELECT, function (err, data) {
             if (data) {
-                req.data = data[0];
-                return next();
+              res.status(200).send(data[0]);
             }
-            return res.sendStatus(404);
+            else {
+              return res.status(500).send({message:'Error al consultar', info: error});
+            }
         });
     }
 }
@@ -26,7 +23,6 @@ function BusinessAgentRepository(dbContext) {
   function getBusinessAgents(req, res) {
   
     dbContext.get("Catalog.getAgents", function(error, data) {
-    //  return res.json(response(data, error));
         if(error) return res.status(500).send({message: `Error al consultar el listado de agentes`, info: error});
         
         return	res.status(200).send(data[0]);
@@ -35,35 +31,31 @@ function BusinessAgentRepository(dbContext) {
 
   function getBusinessAgent(req, res) {
     if (req.params.agentId) {
-      var parameters = [];
-      parameters.push({
-        name: "Id",
-        type: TYPES.Int,
-        val: req.params.agentId
-      });
-      var query = "select IdBusinessAgent idBusinessAgent, Name name, Position position, Email email,  Skype skype, Phone phone, Photo photo from Catalog.BusinessAgent  where IdBusinessAgent = @Id";
-      dbContext.getQuery(query, parameters, false, function(error, data) {
+      var parameters = {'Id': req.params.agentId};
+      var query = "select IdBusinessAgent idBusinessAgent, Name name, Position position, Email email,  Skype skype, Phone phone, Photo photo from Catalog.BusinessAgent  where IdBusinessAgent = :Id";
+      dbContext.getQuery(query, parameters, QueryTypes.SELECT, function(error, data) {
         if (data) {
           return	res.status(200).send(data[0]);
+        } else {
+          return res.status(500).send({message:'Error al consultar', info: error});
         }
-        return res.sendStatus(404);
       });
     }
   }
 
   function putBusinessAgent(req, res) {
-    var parameters = [];
-    parameters.push({ name: "Id", type: TYPES.Int, val: req.body.idBusinessAgent });
-    parameters.push({ name: "Name", type: TYPES.Text, val: req.body.name });
-    parameters.push({ name: "Position", type: TYPES.Text, val: req.body.position });
-    parameters.push({ name: "Email", type: TYPES.Text, val: req.body.email });
-    parameters.push({ name: "Skype", type: TYPES.Text, val: req.body.skype });
-    parameters.push({ name: "Phone", type: TYPES.Text, val: req.body.phone });
-    parameters.push({ name: "Photo", type: TYPES.Text, val: req.body.photo });
+    var parameters = {
+                      'Id': req.body.idBusinessAgent
+                      ,'Name': req.body.name 
+                      ,'Position': req.body.position
+                      ,'Email': req.body.email
+                      ,'Skype': req.body.skype
+                      ,'Phone': req.body.phone
+                      ,'Photo': req.body.photo };
 
-    var query = "Update c set c.Name = @Name, c.Position = @Position, c.Email = @Email ,c.Skype = @Skype ,c.Phone = @Phone,c.Photo = @Photo , c.RecordDate =  CURRENT_TIMESTAMP from Catalog.BusinessAgent c  where IdBusinessAgent = @Id";
+    var query = "Update c set c.Name = :Name, c.Position = :Position, c.Email = :Email ,c.Skype = :Skype ,c.Phone = :Phone,c.Photo = :Photo , c.RecordDate =  CURRENT_TIMESTAMP from Catalog.BusinessAgent c  where IdBusinessAgent = :Id";
      
-    dbContext.getQuery(query, parameters, false, function (error, data, rowCount) {
+    dbContext.getQuery(query, parameters, QueryTypes.UPDATE, function (error, data, rowCount) {
       if (rowCount > 0) {
           var info ={
             idBusinessAgent: req.body.idBusinessAgent,
@@ -75,22 +67,24 @@ function BusinessAgentRepository(dbContext) {
           };
          return res.status(200).send(info);
       }
-      return res.sendStatus(404);
+      else {
+        return res.status(500).send({message:'Error al actualizar', info: error});
+      }
 
     });
 }
 
   function postBusinessAgent(req, res) {
-    var parameters = [];
-    parameters.push({ name: "Name", type: TYPES.Text, val: req.body.name });
-    parameters.push({ name: "Position", type: TYPES.Text, val: req.body.position });
-    parameters.push({ name: "Email", type: TYPES.Text, val: req.body.email });
-    parameters.push({ name: "Skype", type: TYPES.Text, val: req.body.skype });
-    parameters.push({ name: "Phone", type: TYPES.Text, val: req.body.phone });
-    parameters.push({ name: "Photo", type: TYPES.Text, val: req.body.photo });
-    var query = "INSERT INTO Catalog.BusinessAgent ([Name] ,[Position],[Email] ,[Skype] ,[Phone],[Photo] ,[RecordStatu], [RecordDate]) OUTPUT INSERTED.* VALUES (@Name, @Position, @Email, @Skype, @Phone,@Photo, 1, CURRENT_TIMESTAMP);";
+    var parameters = {'Name': req.body.name 
+                      ,'Position': req.body.position
+                      ,'Email': req.body.email
+                      ,'Skype': req.body.skype
+                      ,'Phone': req.body.phone
+                      ,'Photo': req.body.photo };
+
+    var query = "INSERT INTO Catalog.BusinessAgent ([Name] ,[Position],[Email] ,[Skype] ,[Phone],[Photo] ,[RecordStatu], [RecordDate]) OUTPUT INSERTED.* VALUES (:Name, :Position, :Email, :Skype, :Phone,:Photo, 1, CURRENT_TIMESTAMP);";
      
-      dbContext.getQuery(query, parameters, false, function (error, data, rowCount) {
+      dbContext.getQuery(query, parameters, QueryTypes.INSERT, function (error, data, rowCount) {
         if (rowCount > 0) {
             var info ={
               idBusinessAgent: data[0].IdBusinessAgent,
@@ -101,8 +95,9 @@ function BusinessAgentRepository(dbContext) {
               phone: data[0].Phone
             };
            return res.status(200).send(info);
+        } else {
+          return res.status(500).send({message:'Error al insertar', info: error});
         }
-        return res.sendStatus(404);
     });
 
   }
@@ -112,17 +107,16 @@ function BusinessAgentRepository(dbContext) {
     var parameters = [];
 
     if (req.params.agentId ) {
-        var parameters = [];
+        var parameters = {'Id': req.params.agentId };
 
-        parameters.push({ name: 'Id', type: TYPES.Int, val: req.params.agentId });
+        var query = "delete from catalog.BusinessAgent where IdBusinessAgent = :Id"
 
-        var query = "delete from catalog.BusinessAgent where IdBusinessAgent = @Id"
-
-        dbContext.getQuery(query, parameters, false, function (error, data, rowCount) {
+        dbContext.getQuery(query, parameters, QueryTypes.DELETE, function (error, data, rowCount) {
             if (rowCount > 0) {
                 return res.status(200).send({info:true});
+            } else {
+              return res.status(500).send({message:'Error al eliminar', info: error});
             }
-            return res.sendStatus(404);
         });
     }
 }

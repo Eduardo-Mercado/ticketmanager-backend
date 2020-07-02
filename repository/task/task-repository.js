@@ -78,7 +78,7 @@ function TaskRepository(dbContext) {
             if(error) {
                 return res.status(500).send({message:"Error", info:error});
             } else {
-                return res.status(200);
+                return res.status(200).send({data: true});
             }
        });
     }

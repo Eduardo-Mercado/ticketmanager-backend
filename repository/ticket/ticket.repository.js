@@ -55,10 +55,9 @@ function TicketRepository(dbContext) {
      
     dbContext.getQuery(query, parameters, QueryTypes.UPDATE, function (error, data, rowCount) {
       if (rowCount > 0) {
-        var valor = [];
-        valor.push({ name: "Id", type: TYPES.Int, val: req.body.idTicket });
+        var valor = {'Id': req.body.idTicket };
         var query1 = "Catalog.getTickets";
-        dbContext.ExecSP(query1,valor, function(err,record) {
+        dbContext.getQuery(query1,valor, QueryTypes.SELECT, function(err,record) {
           return	res.status(200).send(record);
         });
       }else {
@@ -134,6 +133,22 @@ function TicketRepository(dbContext) {
     }
 }
 
+function getInfo(req, res) {
+  if (req.params.ticketId) {
+    var parameters = {'Id': req.params.ticketId }
+
+    var query = "Manage.getTicketsAgentByIdTicket :Id";
+    dbContext.getQuery(query,parameters, QueryTypes.SELECT, function(err,data) {
+      if(err) {
+         return res.status(500).send({message: 'Error al consultar', info: err});
+      }
+      else {
+        return	res.status(200).send(data[0]);
+      }
+    });
+  }
+}
+
   return {
     getAll: getTickets,
     get: getTicket,
@@ -141,7 +156,8 @@ function TicketRepository(dbContext) {
     put:putTicket,
     delete: deleteTicket,
     getTicketAgent: getTicketsByAgent,
-    postResolved:saveResolve
+    postResolved:saveResolve,
+    getTicketAgentByIdTicket: getInfo
   };
 }
 module.exports = TicketRepository;

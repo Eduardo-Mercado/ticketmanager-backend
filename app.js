@@ -31,7 +31,7 @@ var port = process.env.port || 3300
 });
 
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 var server = require('http').createServer(app);
